@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}All Public Grievances | Pune Central Admin | CivicSaathi{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1 text-primary"><i class="fa fa-list-check me-2"></i>Pune Grievance Registry & Routing</h3>
+      <p class="text-muted small mb-0">Monitor, filter, and reassign civic complaints across all Pune municipal and state departments</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('admin_reports') }}" class="btn btn-warning fw-bold text-dark">
+        <i class="fa fa-file-export me-1"></i> Export Reports
+      </a>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fa fa-gauge me-1"></i> Admin Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="card card-civic mb-4 p-3 shadow-sm">
+    <form action="{{ url_for('admin_complaints') }}" method="GET" class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <select name="dept_id" class="form-select form-select-sm">
+          <option value="">-- All Pune Departments --</option>
+          {% for d in departments %}
+            <option value="{{ d.id }}" {% if selected_dept_id == d.id|string %}selected{% endif %}>{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">-- All Statuses --</option>
+          <option value="Submitted" {% if selected_status == 'Submitted' %}selected{% endif %}>Submitted</option>
+          <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+          <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+          <option value="Resolved" {% if selected_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+          <option value="Rejected" {% if selected_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="ward" class="form-select form-select-sm">
+          <option value="">-- All Pune Wards --</option>
+          {% for w in wards %}
+            <option value="{{ w }}" {% if selected_ward == w %}selected{% endif %}>{{ w }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary flex-grow-1 fw-semibold">
+          <i class="fa fa-filter me-1"></i> Apply Filter
+        </button>
+        <a href="{{ url_for('admin_complaints') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Complaints Master Table -->
+  <div class="card card-civic shadow-sm">
+    <div class="card-header-civic d-flex justify-content-between align-items-center">
+      <span class="fw-bold text-primary">Registered Grievance Records</span>
+      <span class="badge bg-secondary">{{ complaints|length }} Tickets</span>
+    </div>
+
+    <div class="card-body p-0">
+      {% if complaints %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-muted text-uppercase">
+            <tr>
+              <th>Ref No & Date</th>
+              <th>Department</th>
+              <th>Title & Urgency</th>
+              <th>Ward / Landmark</th>
+              <th>Citizen Details</th>
+              <th>Status</th>
+              <th class="text-end">Routing & Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+            <tr>
+              <td>
+                <span class="fw-bold text-primary font-monospace">{{ c.reference_no }}</span>
+                <div class="text-muted small">{{ c.created_at[:10] }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ c.dept_name }}</div>
+                <div class="text-muted small">{{ c.cat_name }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold text-truncate" style="max-width: 220px;">{{ c.title }}</div>
+                <span class="badge badge-urgency-{{ c.urgency|lower }}" style="font-size: 0.65rem;">{{ c.urgency }}</span>
+              </td>
+              <td class="small">
+                <div class="fw-semibold text-danger"><i class="fa fa-map-pin me-1"></i> {{ c.ward_area }}</div>
+                <div class="text-muted text-truncate" style="max-width: 180px;">{{ c.address_landmark }}</div>
+              </td>
+              <td class="small">
+                <div class="fw-semibold">{{ c.citizen_name }}</div>
+                <div class="text-muted">{{ c.citizen_phone or c.citizen_email }}</div>
+              </td>
+              <td>
+                {% if c.status == 'Submitted' %}
+                  <span class="badge badge-submitted">Submitted</span>
+                {% elif c.status == 'Under Review' %}
+                  <span class="badge badge-under-review">Under Review</span>
+                {% elif c.status == 'In Progress' %}
+                  <span class="badge badge-in-progress">In Progress</span>
+                {% elif c.status == 'Resolved' %}
+                  <span class="badge badge-resolved">Resolved</span>
+                {% elif c.status == 'Rejected' %}
+                  <span class="badge badge-rejected">Rejected</span>
+                {% endif %}
+              </td>
+              <td class="text-end text-nowrap">
+                <a href="{{ url_for('track_complaint', ref=c.reference_no) }}" class="btn btn-sm btn-outline-primary" title="View Full Timeline">
+                  <i class="fa fa-eye"></i>
+                </a>
+                
+                <!-- Reassign Department Trigger Button -->
+                <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#reassignModal{{ c.id }}" title="Reassign Department">
+                  <i class="fa fa-shuffle me-1"></i> Re-Route
+                </button>
+
+                <!-- Reassign Modal for this complaint -->
+                <div class="modal fade" id="reassignModal{{ c.id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered text-start">
+                    <div class="modal-content">
+                      <form action="{{ url_for('admin_reassign_complaint', comp_id=c.id) }}" method="POST">
+                        <div class="modal-header bg-light">
+                          <h6 class="modal-title fw-bold text-primary">
+                            <i class="fa fa-shuffle me-1"></i> Reassign Department for {{ c.reference_no }}
+                          </h6>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                          <div class="mb-3">
+                            <label class="form-label small fw-semibold">Complaint Summary:</label>
+                            <div class="p-2 bg-light rounded small">{{ c.title }}</div>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label small fw-semibold">Currently Assigned Department:</label>
+                            <div class="fw-bold text-danger">{{ c.dept_name }}</div>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label small fw-semibold">Select New Target Department <span class="text-danger">*</span></label>
+                            <select name="new_department_id" class="form-select" required>
+                              {% for d in departments %}
+                                <option value="{{ d.id }}" {% if d.id == c.department_id %}selected disabled{% endif %}>
+                                  {{ d.name }} ({{ d.authority }})
+                                </option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label small fw-semibold">Administrative Routing Remarks <span class="text-danger">*</span></label>
+                            <textarea name="reassign_remarks" rows="3" class="form-control" placeholder="Reason for transfer (e.g. Issue falls under PWD jurisdiction rather than PMC Roads)..." required></textarea>
+                          </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-sm btn-warning fw-bold text-dark">Confirm Reassignment</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="fa fa-inbox text-muted display-4 mb-3"></i>
+        <h5 class="fw-bold">No Grievances Match Selected Filters</h5>
+        <p class="text-muted small">Try broadening your search criteria or resetting filters.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

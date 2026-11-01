@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Grievance Status | CivicSaathi Pune City{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  
+  <!-- Search Reference Header Box -->
+  <div class="card card-civic mb-4 p-4 shadow-sm">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <h3 class="fw-bold mb-1 text-primary"><i class="fa fa-magnifying-glass me-2"></i>Track Pune Civic Complaint</h3>
+        <p class="text-muted small mb-0">Check real-time department investigation remarks, field assignments, and status updates.</p>
+      </div>
+      <div class="col-lg-5 mt-3 mt-lg-0">
+        <form action="{{ url_for('track_complaint') }}" method="GET" class="d-flex gap-2">
+          <input type="text" name="ref" class="form-control" placeholder="Enter Ref No: e.g. CS-PUN-2026-1042" value="{{ ref_query or '' }}" required>
+          <button type="submit" class="btn btn-warning fw-bold text-dark text-nowrap">
+            <i class="fa fa-search me-1"></i> Track
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if complaint %}
+  <!-- Complaint Result Display -->
+  <div class="row g-4">
+    <!-- Left Column: Details & Evidence -->
+    <div class="col-lg-8">
+      <div class="card card-civic mb-4">
+        <div class="card-header-civic d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small">Reference No:</span>
+            <span class="fs-5 fw-bold text-primary font-monospace ms-1">{{ complaint.reference_no }}</span>
+          </div>
+          <div>
+            {% if complaint.status == 'Submitted' %}
+              <span class="badge badge-submitted fs-6 px-3 py-1">Submitted</span>
+            {% elif complaint.status == 'Under Review' %}
+              <span class="badge badge-under-review fs-6 px-3 py-1">Under Review</span>
+            {% elif complaint.status == 'In Progress' %}
+              <span class="badge badge-in-progress fs-6 px-3 py-1">In Progress</span>
+            {% elif complaint.status == 'Resolved' %}
+              <span class="badge badge-resolved fs-6 px-3 py-1">Resolved</span>
+            {% elif complaint.status == 'Rejected' %}
+              <span class="badge badge-rejected fs-6 px-3 py-1">Rejected</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <h4 class="fw-bold mb-3">{{ complaint.title }}</h4>
+          
+          <div class="row g-3 mb-4">
+            <div class="col-sm-6">
+              <div class="text-muted small">Department</div>
+              <div class="fw-bold text-primary"><i class="fa fa-building me-1"></i> {{ complaint.dept_name }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Category</div>
+              <div class="fw-semibold"><i class="fa fa-tag me-1 text-muted"></i> {{ complaint.cat_name }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Ward / Locality</div>
+              <div class="fw-semibold"><i class="fa fa-map-pin me-1 text-danger"></i> {{ complaint.ward_area }}</div>
+            </div>
+            <div class="col-sm-6">
+              <div class="text-muted small">Filing Date & Time</div>
+              <div class="fw-semibold"><i class="fa fa-calendar-day me-1 text-muted"></i> {{ complaint.created_at }}</div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h6 class="fw-bold text-muted text-uppercase small">Address / Landmark</h6>
+            <p class="p-3 bg-light rounded-3 mb-0">{{ complaint.address_landmark }}</p>
+          </div>
+
+          <div class="mb-4">
+            <h6 class="fw-bold text-muted text-uppercase small">Grievance Description</h6>
+            <p class="p-3 bg-light rounded-3 mb-0">{{ complaint.description }}</p>
+          </div>
+
+          <!-- Photographs (Evidence & Resolution) -->
+          <div class="row g-3">
+            {% if complaint.photo_url %}
+            <div class="col-md-6">
+              <h6 class="fw-bold text-muted text-uppercase small"><i class="fa fa-camera me-1"></i> Citizen Evidence Photo</h6>
+              <img src="{{ complaint.photo_url }}" class="img-fluid rounded-3 border shadow-sm" alt="Citizen Evidence" style="max-height: 250px; width: 100%; object-fit: cover;">
+            </div>
+            {% endif %}
+
+            {% if complaint.resolution_photo_url %}
+            <div class="col-md-6">
+              <h6 class="fw-bold text-success text-uppercase small"><i class="fa fa-check-circle me-1"></i> Official Resolution Evidence</h6>
+              <img src="{{ complaint.resolution_photo_url }}" class="img-fluid rounded-3 border border-success shadow-sm" alt="Resolution Evidence" style="max-height: 250px; width: 100%; object-fit: cover;">
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Audit Trail / Status History -->
+      <div class="card card-civic">
+        <div class="card-header-civic">
+          <i class="fa fa-clock-rotate-left me-2 text-primary"></i> Live Department Redressal Timeline
+        </div>
+        <div class="card-body p-4">
+          <ul class="timeline mb-0">
+            {% for item in timeline %}
+            <li class="timeline-item">
+              <div class="timeline-dot {% if item.status == 'Resolved' %}success{% elif item.status == 'In Progress' %}warning{% elif item.status == 'Rejected' %}danger{% endif %}"></div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-primary">{{ item.status }}</span>
+                <span class="text-muted small">{{ item.created_at }}</span>
+              </div>
+              <div class="small text-muted mb-1">
+                Updated by: <strong>{{ item.actor_name }}</strong> ({{ item.actor_role }})
+              </div>
+              <div class="p-2 bg-light rounded border-start border-3 border-primary small">
+                {{ item.remarks }}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Official Slip & Department Contact -->
+    <div class="col-lg-4">
+      <!-- Digital Slip Card -->
+      <div class="card card-civic mb-4 text-center p-4">
+        <div class="bg-primary-subtle text-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+          <i class="fa fa-receipt fs-4"></i>
+        </div>
+        <h5 class="fw-bold mb-1">Digital Acknowledgement</h5>
+        <p class="text-muted small mb-3">Download or print official stamped complaint receipt with QR code.</p>
+        <a href="{{ url_for('complaint_receipt', ref=complaint.reference_no) }}" class="btn btn-outline-primary fw-semibold w-100 mb-2">
+          <i class="fa fa-print me-1"></i> View & Print Official Slip
+        </a>
+      </div>
+
+      <!-- Responsible Authority Box -->
+      <div class="card card-civic p-4">
+        <h6 class="fw-bold text-muted text-uppercase small mb-3"><i class="fa fa-building-shield me-1"></i> Responsible Authority</h6>
+        <div class="fw-bold text-primary mb-1">{{ complaint.dept_name }}</div>
+        <div class="text-muted small mb-3">{{ complaint.dept_authority }}</div>
+        
+        <div class="small text-muted mb-2"><i class="fa fa-phone text-primary me-2"></i> {{ complaint.dept_phone }}</div>
+        <div class="small text-muted mb-3"><i class="fa fa-envelope text-primary me-2"></i> {{ complaint.dept_email }}</div>
+
+        <div class="p-3 bg-light rounded-3 small">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted">Target Resolution SLA:</span>
+            <span class="fw-bold">{{ complaint.sla_days }} Working Days</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Assigned Officer:</span>
+            <span class="fw-bold text-truncate">{{ complaint.assigned_officer_name or 'Ward Triage Officer' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% elif ref_query %}
+  <!-- Not Found Message -->
+  <div class="card card-civic text-center p-5 shadow-sm">
+    <div class="text-danger mb-3">
+      <i class="fa fa-triangle-exclamation display-4"></i>
+    </div>
+    <h4 class="fw-bold">No Complaint Found for Reference: "{{ ref_query }}"</h4>
+    <p class="text-muted">Please check that the reference number is entered accurately (e.g. <code>CS-PUN-2026-1042</code>).</p>
+    <div class="mt-3">
+      <a href="{{ url_for('track_complaint') }}" class="btn btn-primary">Try Another Reference</a>
+      <a href="{{ url_for('new_complaint') }}" class="btn btn-warning ms-2 fw-semibold">File New Grievance</a>
+    </div>
+  </div>
+  {% else %}
+  <!-- Empty State Helper -->
+  <div class="card card-civic text-center p-5">
+    <div class="text-primary mb-3">
+      <i class="fa fa-barcode display-4"></i>
+    </div>
+    <h5 class="fw-bold">Enter a Pune Grievance Reference Number Above</h5>
+    <p class="text-muted small">Every complaint registered on CivicSaathi receives an official reference code like <code>CS-PUN-2026-1042</code>.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

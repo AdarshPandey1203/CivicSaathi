@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Official Grievance Acknowledgement Receipt | {{ complaint.reference_no }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Action Bar (Hidden on print) -->
+  <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <a href="{{ url_for('track_complaint', ref=complaint.reference_no) }}" class="btn btn-outline-secondary">
+      <i class="fa fa-arrow-left me-1"></i> Back to Tracking Timeline
+    </a>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-primary fw-bold">
+        <i class="fa fa-print me-1"></i> Print / Save as PDF
+      </button>
+      <a href="{{ url_for('citizen_dashboard') }}" class="btn btn-outline-primary">
+        <i class="fa fa-home me-1"></i> Citizen Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Official Grievance Receipt Slip Container -->
+  <div class="receipt-container position-relative">
+    <div class="receipt-watermark">PUNE CIVIC REDRESSAL</div>
+
+    <!-- Official Header -->
+    <div class="receipt-header">
+      <div class="d-flex justify-content-center align-items-center gap-3 mb-2">
+        <div class="text-primary fs-2">
+          <i class="fa fa-landmark-dome"></i>
+        </div>
+        <div class="text-center">
+          <h4 class="fw-bold mb-0 text-uppercase tracking-wide" style="color: #0f2c59;">Pune Public Grievance Redressal Portal</h4>
+          <div class="small fw-semibold text-muted text-uppercase">CivicSaathi Central Redressal System &bull; Government of Maharashtra</div>
+        </div>
+      </div>
+      <div class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold text-uppercase mt-2">
+        Official Digital Acknowledgement Slip
+      </div>
+    </div>
+
+    <!-- Reference Box & QR Code -->
+    <div class="row align-items-center p-3 bg-light rounded-3 border mb-4">
+      <div class="col-8">
+        <div class="text-muted small text-uppercase fw-bold">Unique Grievance Reference Number</div>
+        <div class="display-6 fw-bold text-primary font-monospace">{{ complaint.reference_no }}</div>
+        <div class="text-muted small">
+          <i class="fa fa-calendar-check me-1"></i> Registered On: <strong>{{ complaint.created_at }}</strong>
+        </div>
+      </div>
+      <div class="col-4 text-end">
+        <div id="receipt-qr-code" data-ref="{{ complaint.reference_no }}" class="d-inline-block"></div>
+        <div class="small text-muted" style="font-size: 0.68rem;">Scan to Verify Online</div>
+      </div>
+    </div>
+
+    <!-- Grievance & Citizen Details Table -->
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered mb-0">
+        <tbody>
+          <tr>
+            <th class="bg-light text-muted small text-uppercase" style="width: 28%;">Complainant Name</th>
+            <td class="fw-semibold">{{ complaint.citizen_name }}</td>
+            <th class="bg-light text-muted small text-uppercase" style="width: 22%;">Contact Phone</th>
+            <td>{{ complaint.citizen_phone or 'Confidential' }}</td>
+          </tr>
+          <tr>
+            <th class="bg-light text-muted small text-uppercase">Registered Email</th>
+            <td>{{ complaint.citizen_email }}</td>
+            <th class="bg-light text-muted small text-uppercase">Pune Ward / Zone</th>
+            <td class="fw-bold text-primary">{{ complaint.ward_area }}</td>
+          </tr>
+          <tr>
+            <th class="bg-light text-muted small text-uppercase">Assigned Department</th>
+            <td class="fw-bold text-primary">{{ complaint.dept_name }}</td>
+            <th class="bg-light text-muted small text-uppercase">Target SLA</th>
+            <td><strong>{{ complaint.sla_days }} Working Days</strong></td>
+          </tr>
+          <tr>
+            <th class="bg-light text-muted small text-uppercase">Complaint Category</th>
+            <td colspan="3">{{ complaint.cat_name }}</td>
+          </tr>
+          <tr>
+            <th class="bg-light text-muted small text-uppercase">Grievance Title</th>
+            <td colspan="3" class="fw-bold">{{ complaint.title }}</td>
+          </tr>
+          <tr>
+            <th class="bg-light text-muted small text-uppercase">Incident Address</th>
+            <td colspan="3">{{ complaint.address_landmark }}</td>
+          </tr>
+          <tr>
+            <th class="bg-light text-muted small text-uppercase">Current Status</th>
+            <td colspan="3">
+              <span class="badge badge-submitted fs-7 px-3 py-1 fw-bold">{{ complaint.status }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Official Terms & Department Notes -->
+    <div class="p-3 border rounded-3 bg-light small mb-4">
+      <div class="fw-bold text-dark mb-1"><i class="fa fa-circle-info text-primary me-1"></i> Official Notice to Citizen:</div>
+      <ol class="mb-0 ps-3 text-muted">
+        <li>This digital acknowledgement serves as legal proof of complaint registration under the Pune City Citizen Redressal Charter.</li>
+        <li>Your complaint has been routed to the respective ward officer and technical supervisor of {{ complaint.dept_name }}.</li>
+        <li>You can track the live status anytime by visiting <code>civicsaathi.pune.gov.in/track</code> or scanning the QR code above.</li>
+      </ol>
+    </div>
+
+    <!-- Signatures & Authority Stamp -->
+    <div class="row pt-3 text-center border-top">
+      <div class="col-6">
+        <div class="text-muted small">Complainant E-Verification</div>
+        <div class="fw-bold text-dark mt-4 border-top pt-1 d-inline-block px-3">Citizen Registered Account</div>
+      </div>
+      <div class="col-6">
+        <div class="text-muted small">Authorized Municipal Authority</div>
+        <div class="fw-bold text-primary mt-4 border-top pt-1 d-inline-block px-3">
+          CivicSaathi Central Redressal Cell, Pune
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Department Management | Pune CivicSaathi Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1 text-primary"><i class="fa fa-building-columns me-2"></i>Pune Civic Authorities & Departments</h3>
+      <p class="text-muted small mb-0">Configured municipal departments, SLAs, and complaint categories</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+      <i class="fa fa-gauge me-1"></i> Dashboard
+    </a>
+  </div>
+
+  <div class="row g-4">
+    {% for d in departments %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-civic h-100">
+        <div class="card-header-civic d-flex justify-content-between align-items-center">
+          <span class="badge bg-primary text-white">{{ d.code }}</span>
+          <span class="badge bg-warning text-dark"><i class="fa fa-clock me-1"></i> SLA: {{ d.sla_days }} Days</span>
+        </div>
+        <div class="card-body p-4 d-flex flex-column">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="fa {{ d.icon }} text-primary fs-4"></i>
+            <h5 class="fw-bold mb-0 text-primary">{{ d.name }}</h5>
+          </div>
+          <div class="text-muted small mb-3">Authority: <strong>{{ d.authority }}</strong></div>
+          <p class="text-muted small flex-grow-1">{{ d.description }}</p>
+
+          <div class="p-3 bg-light rounded-3 small mb-3">
+            <div><i class="fa fa-envelope text-primary me-2"></i> {{ d.contact_email }}</div>
+            <div><i class="fa fa-phone text-primary me-2"></i> {{ d.contact_phone }}</div>
+          </div>
+
+          <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+            <span class="text-muted small">Assigned Tickets: <strong>{{ d.total_complaints or 0 }}</strong></span>
+            <a href="{{ url_for('admin_complaints', dept_id=d.id) }}" class="btn btn-sm btn-outline-primary">
+              View Queue <i class="fa fa-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

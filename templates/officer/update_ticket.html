@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Complaint Redressal | {{ complaint.reference_no }} | CivicSaathi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{{ url_for('officer_dashboard') }}" class="btn btn-outline-secondary">
+      <i class="fa fa-arrow-left me-1"></i> Back to Department Queue
+    </a>
+    <div>
+      <span class="text-muted small">Reference ID:</span>
+      <span class="fs-5 fw-bold font-monospace text-primary ms-1">{{ complaint.reference_no }}</span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Complaint Review & Past Timeline -->
+    <div class="col-lg-6">
+      <div class="card card-civic mb-4">
+        <div class="card-header-civic d-flex justify-content-between align-items-center">
+          <span class="fw-bold text-primary"><i class="fa fa-file-lines me-2"></i>Grievance Details</span>
+          <span class="badge badge-submitted">{{ complaint.status }}</span>
+        </div>
+        <div class="card-body p-4">
+          <h4 class="fw-bold mb-3">{{ complaint.title }}</h4>
+
+          <div class="row g-2 mb-3 small">
+            <div class="col-6">
+              <span class="text-muted">Category:</span>
+              <div class="fw-bold">{{ complaint.cat_name }}</div>
+            </div>
+            <div class="col-6">
+              <span class="text-muted">Urgency:</span>
+              <div><span class="badge badge-urgency-{{ complaint.urgency|lower }}">{{ complaint.urgency }}</span></div>
+            </div>
+            <div class="col-6">
+              <span class="text-muted">Pune Ward / Area:</span>
+              <div class="fw-bold text-danger"><i class="fa fa-map-pin me-1"></i> {{ complaint.ward_area }}</div>
+            </div>
+            <div class="col-6">
+              <span class="text-muted">Registered Date:</span>
+              <div class="fw-semibold">{{ complaint.created_at }}</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="text-muted small text-uppercase fw-bold">Incident Address & Landmark:</div>
+            <p class="p-2 bg-light rounded small mb-0">{{ complaint.address_landmark }}</p>
+          </div>
+
+          <div class="mb-3">
+            <div class="text-muted small text-uppercase fw-bold">Complainant Description:</div>
+            <p class="p-2 bg-light rounded small mb-0">{{ complaint.description }}</p>
+          </div>
+
+          <!-- Citizen Evidence Photo -->
+          {% if complaint.photo_url %}
+          <div class="mb-3">
+            <div class="text-muted small text-uppercase fw-bold mb-1">Citizen Photographic Evidence:</div>
+            <img src="{{ complaint.photo_url }}" class="img-fluid rounded border shadow-sm" alt="Citizen Evidence" style="max-height: 220px; width: 100%; object-fit: cover;">
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Past Timeline Audit Trail -->
+      <div class="card card-civic">
+        <div class="card-header-civic">
+          <i class="fa fa-clock-rotate-left me-2 text-primary"></i> Case Action History
+        </div>
+        <div class="card-body p-4">
+          <ul class="timeline mb-0">
+            {% for item in timeline %}
+            <li class="timeline-item">
+              <div class="timeline-dot {% if item.status == 'Resolved' %}success{% elif item.status == 'In Progress' %}warning{% elif item.status == 'Rejected' %}danger{% endif %}"></div>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-bold text-primary">{{ item.status }}</span>
+                <span class="text-muted small">{{ item.created_at }}</span>
+              </div>
+              <div class="small text-muted mb-1">
+                By: <strong>{{ item.actor_name }}</strong> ({{ item.actor_role }})
+              </div>
+              <div class="p-2 bg-light rounded border-start border-3 border-primary small">
+                {{ item.remarks }}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Official Action Form -->
+    <div class="col-lg-6">
+      <div class="card card-civic shadow-sm border-top border-4 border-primary">
+        <div class="card-header-civic bg-light">
+          <h5 class="fw-bold mb-0 text-primary"><i class="fa fa-pen-to-square me-2"></i>Record Investigation & Redressal</h5>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <form action="{{ url_for('officer_update_ticket', comp_id=complaint.id) }}" method="POST" enctype="multipart/form-data">
+            
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Update Complaint Status <span class="text-danger">*</span></label>
+              <select name="status" class="form-select form-select-lg" required>
+                <option value="Under Review" {% if complaint.status == 'Under Review' %}selected{% endif %}>
+                  🟡 Under Review (Field Inspection Assigned)
+                </option>
+                <option value="In Progress" {% if complaint.status == 'In Progress' %}selected{% endif %}>
+                  🟠 In Progress (Work Order Dispatched / Maintenance Active)
+                </option>
+                <option value="Resolved" {% if complaint.status == 'Resolved' %}selected{% endif %}>
+                  🟢 Resolved (Issue Rectified & Verified)
+                </option>
+                <option value="Rejected" {% if complaint.status == 'Rejected' %}selected{% endif %}>
+                  🔴 Rejected (Out of Jurisdiction / Invalid / Duplicate)
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Official Investigation & Resolution Remarks <span class="text-danger">*</span></label>
+              <textarea name="remarks" rows="5" class="form-control" placeholder="Mandatory official notes: describe site investigation findings, assigned repair crew, parts replaced, work order numbers, or specific rejection reasons..." required></textarea>
+              <div class="form-text small">These remarks are published to the citizen tracking log and municipal audit records.</div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Upload Resolution / Rectification Proof Photo (Optional)</label>
+              <input type="file" name="resolution_photo_file" class="form-control" accept="image/*">
+              <div class="form-text small">Provide post-redressal photographic proof (e.g. repaved road patch, repaired water line).</div>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 border mb-4 small text-muted">
+              <i class="fa fa-user-shield text-primary me-1"></i> Recorded by: <strong>{{ session.get('user_name') }}</strong> ({{ session.get('dept_name') }})
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold py-3 shadow">
+              <i class="fa fa-floppy-disk me-2"></i> Save & Broadcast Status Update
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

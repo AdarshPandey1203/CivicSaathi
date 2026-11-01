@@ -1,0 +1,11 @@
+{
+  "name": "CivicSaathi",
+  "description": "Multipurpose Community Assistance & Civic Issue Management Platform for reporting issues, coordinating community help, donation & reuse, local services, and student opportunities.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

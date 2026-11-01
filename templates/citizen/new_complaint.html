@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Lodge Civic Grievance | CivicSaathi Pune City{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      
+      <!-- Page Header -->
+      <div class="mb-4 text-center">
+        <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold text-uppercase">Module 2: Grievance Registration</span>
+        <h2 class="fw-bold mt-2">Lodge a Public Service Grievance</h2>
+        <p class="text-muted">Register municipal, infrastructure, electricity, or traffic issues in Pune City for official redressal</p>
+      </div>
+
+      <div class="card card-civic shadow-sm">
+        <div class="card-header-civic bg-light">
+          <i class="fa fa-file-pen me-2 text-primary"></i> Citizen Complaint Registration Form
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <form action="{{ url_for('new_complaint') }}" method="POST" enctype="multipart/form-data">
+            
+            <!-- Step 1: Department & Category Selection -->
+            <div class="mb-4">
+              <h5 class="fw-bold text-primary mb-3"><i class="fa fa-sitemap me-2"></i>1. Select Responsible Department & Category</h5>
+              
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Government / Municipal Department <span class="text-danger">*</span></label>
+                  <select name="department_id" id="department_select" class="form-select" required>
+                    <option value="">-- Choose Pune Department --</option>
+                    {% for d in departments %}
+                      <option value="{{ d.id }}" {% if selected_dept_id == d.id %}selected{% endif %}>
+                        {{ d.name }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Complaint Category <span class="text-danger">*</span></label>
+                  <select name="category_id" id="category_select" class="form-select" required>
+                    <option value="">-- Select Specific Complaint Category --</option>
+                    {% for cat in initial_categories %}
+                      <option value="{{ cat.id }}">{{ cat.name }} (Default: {{ cat.default_urgency }})</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Step 2: Grievance Title & Details -->
+            <div class="mb-4">
+              <h5 class="fw-bold text-primary mb-3"><i class="fa fa-circle-info me-2"></i>2. Problem Description</h5>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">Complaint Title / Summary <span class="text-danger">*</span></label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. Hazardous deep pothole on Paud Road near Ideal Colony metro station" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold small">Detailed Description <span class="text-danger">*</span></label>
+                <textarea name="description" rows="4" class="form-control" placeholder="Provide complete facts: severity of the problem, duration of issue, impact on traffic or public health..." required></textarea>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Urgency Level <span class="text-danger">*</span></label>
+                  <select name="urgency" class="form-select" required>
+                    <option value="Low">Low (Routine maintenance)</option>
+                    <option value="Medium" selected>Medium (Standard civic issue - 5 days)</option>
+                    <option value="High">High (Impacting traffic / hygiene)</option>
+                    <option value="Critical">Critical (Immediate safety / life hazard)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Step 3: Location Details & GPS Coordinates -->
+            <div class="mb-4">
+              <h5 class="fw-bold text-primary mb-3"><i class="fa fa-map-location-dot me-2"></i>3. Pune Location & Landmark Details</h5>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Pune Ward / Locality <span class="text-danger">*</span></label>
+                  <select name="ward_area" class="form-select" required>
+                    <option value="">-- Select Pune Ward / Area --</option>
+                    {% for ward in wards %}
+                      <option value="{{ ward }}" {% if user.ward_area == ward %}selected{% endif %}>{{ ward }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Complete Address & Landmark <span class="text-danger">*</span></label>
+                  <input type="text" name="address_landmark" class="form-control" placeholder="e.g. Opposite CCD, Near Karve Statue, Karve Road, Kothrud" required>
+                </div>
+              </div>
+
+              <!-- GPS Coordinates Tagging -->
+              <div class="p-3 bg-light rounded-3 border">
+                <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                  <span class="fw-semibold small"><i class="fa fa-crosshairs text-danger me-1"></i> Tag GPS Geolocation Coordinates (Optional)</span>
+                  <button type="button" id="btn-get-location" class="btn btn-sm btn-outline-primary">
+                    <i class="fa fa-location-crosshairs me-1"></i> Detect My Current GPS Location
+                  </button>
+                </div>
+                <div id="location_status" class="small text-muted mb-2"></div>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <input type="text" name="latitude" id="latitude_input" class="form-control form-control-sm" placeholder="Latitude (e.g. 18.5028)">
+                  </div>
+                  <div class="col-6">
+                    <input type="text" name="longitude" id="longitude_input" class="form-control form-control-sm" placeholder="Longitude (e.g. 73.8180)">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Step 4: Photographic Evidence (Upload + Live WebRTC Camera) -->
+            <div class="mb-4">
+              <h5 class="fw-bold text-primary mb-3"><i class="fa fa-camera me-2"></i>4. Supporting Evidence Photograph</h5>
+              <p class="text-muted small">Upload a photograph from your device or use your device camera to capture the on-site problem.</p>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Upload Image File (JPG, PNG, WebP)</label>
+                  <input type="file" name="photo_file" class="form-control" accept="image/*">
+                </div>
+
+                <div class="col-md-6 d-flex flex-column justify-content-end">
+                  <button type="button" id="btn-start-camera" class="btn btn-outline-secondary w-100">
+                    <i class="fa fa-video me-1"></i> Use Device Camera
+                  </button>
+                </div>
+              </div>
+
+              <!-- Camera Capture Box -->
+              <div id="camera-modal-box" class="d-none mt-3 p-3 bg-light border rounded-3 text-center">
+                <div class="fw-bold small mb-2"><i class="fa fa-camera-retro me-1"></i> Live Camera Feed</div>
+                <video id="camera-video" playsinline autoplay class="d-none mb-2"></video>
+                <canvas id="camera-canvas" class="d-none mb-2"></canvas>
+                <input type="hidden" name="camera_image_data" id="camera_image_data">
+                
+                <div class="mt-2">
+                  <button type="button" id="btn-capture-photo" class="btn btn-sm btn-primary">
+                    <i class="fa fa-circle-dot me-1"></i> Capture Photo
+                  </button>
+                  <button type="button" id="btn-retake-photo" class="btn btn-sm btn-warning d-none">
+                    <i class="fa fa-rotate-right me-1"></i> Retake Photo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5">
+              <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold text-dark py-3 shadow">
+                <i class="fa fa-paper-plane me-2"></i> Submit Grievance & Generate Reference Number
+              </button>
+              <div class="text-center text-muted small mt-2">
+                <i class="fa fa-shield-halved me-1 text-success"></i> Your complaint is logged with an official timestamp in the municipal central database.
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

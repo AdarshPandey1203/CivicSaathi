@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Citizen Registration | CivicSaathi Pune City{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      
+      <div class="card card-civic shadow-lg border-0 overflow-hidden">
+        <div class="card-header bg-primary text-white p-4 text-center">
+          <div class="bg-white text-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+            <i class="fa fa-user-plus fs-4"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Pune Citizen Registration</h4>
+          <p class="small text-white-50 mb-0">Create your citizen profile to lodge and track public grievances in Pune City</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <form action="{{ url_for('register') }}" method="POST">
+            
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Full Name <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fa fa-user text-muted"></i></span>
+                <input type="text" name="name" class="form-control" placeholder="e.g. Ramesh Kulkarni" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fa fa-envelope text-muted"></i></span>
+                <input type="email" name="email" class="form-control" placeholder="e.g. ramesh.kulkarni@gmail.com" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Mobile Phone Number <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fa fa-phone text-muted"></i></span>
+                <input type="tel" name="phone" class="form-control" placeholder="+91 98765 43210" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Primary Pune Ward / Residential Area <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fa fa-location-dot text-muted"></i></span>
+                <select name="ward_area" class="form-select" required>
+                  <option value="">-- Select Your Pune Ward / Locality --</option>
+                  {% for ward in wards %}
+                    <option value="{{ ward }}">{{ ward }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-2 mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fa fa-lock text-muted"></i></span>
+                  <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Confirm Password <span class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fa fa-lock text-muted"></i></span>
+                  <input type="password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm">
+              <i class="fa fa-check-circle me-1"></i> Register Citizen Profile
+            </button>
+          </form>
+
+          <div class="mt-4 text-center small text-muted">
+            Already registered on CivicSaathi? <a href="{{ url_for('login') }}" class="fw-semibold text-primary">Login Here</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

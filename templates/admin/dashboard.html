@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Central Administration Console | Pune CivicSaathi{% endblock %}
+
+{% block head_extra %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+
+  <!-- Admin Welcome Banner -->
+  <div class="card card-civic mb-4 bg-dark text-white p-4 border-start border-5 border-danger">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <span class="badge bg-danger text-white px-2 py-1 mb-2 fw-bold text-uppercase">Module 5: Administration & City Oversight</span>
+        <h3 class="fw-bold mb-1">Pune Central Grievance Redressal Cell</h3>
+        <p class="text-white-50 small mb-0">
+          Executive monitoring console across all 15 Pune municipal divisions, transport boards, power utility, and law enforcement.
+        </p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('admin_reports') }}" class="btn btn-warning fw-bold text-dark">
+          <i class="fa fa-file-pdf me-1"></i> Generate Reports
+        </a>
+        <a href="{{ url_for('admin_complaints') }}" class="btn btn-outline-light">
+          <i class="fa fa-list-check me-1"></i> Triage All Complaints
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- City-wide Key Metrics Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border-start border-4 border-primary">
+        <div class="fs-2 fw-bold text-primary">{{ stats.total }}</div>
+        <div class="text-muted small fw-semibold text-uppercase">Total Registered Grievances</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border-start border-4 border-success">
+        <div class="fs-2 fw-bold text-success">{{ stats.resolved }}</div>
+        <div class="text-muted small fw-semibold text-uppercase">Resolved Complaints</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border-start border-4 border-warning">
+        <div class="fs-2 fw-bold text-warning">{{ stats.in_progress }}</div>
+        <div class="text-muted small fw-semibold text-uppercase">In Active Redressal</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border-start border-4 border-danger">
+        <div class="fs-2 fw-bold text-danger">{{ stats.resolution_rate }}%</div>
+        <div class="text-muted small fw-semibold text-uppercase">Overall Resolution Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Analytics Charts Row -->
+  <div class="row g-4 mb-4">
+    <!-- Department Distribution Bar Chart -->
+    <div class="col-lg-8">
+      <div class="card card-civic h-100">
+        <div class="card-header-civic d-flex justify-content-between align-items-center">
+          <span class="fw-bold text-primary"><i class="fa fa-chart-bar me-2"></i>Department-wise Grievance Inflow</span>
+          <span class="badge bg-light text-muted border">Pune City Statistics</span>
+        </div>
+        <div class="card-body p-4">
+          <canvas id="deptChart" style="max-height: 320px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Breakdown Doughnut Chart -->
+    <div class="col-lg-4">
+      <div class="card card-civic h-100">
+        <div class="card-header-civic">
+          <span class="fw-bold text-primary"><i class="fa fa-chart-pie me-2"></i>Status Breakdown</span>
+        </div>
+        <div class="card-body p-4 d-flex flex-column align-items-center justify-content-center">
+          <canvas id="statusChart" style="max-height: 260px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Grievance Activity Table -->
+  <div class="card card-civic shadow-sm">
+    <div class="card-header-civic d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <h5 class="fw-bold mb-0 text-primary"><i class="fa fa-list me-2"></i>Recent Public Grievances</h5>
+      <div>
+        <a href="{{ url_for('admin_complaints') }}" class="btn btn-sm btn-outline-primary">
+          View Complete Registry <i class="fa fa-arrow-right ms-1"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-muted text-uppercase">
+            <tr>
+              <th>Reference No</th>
+              <th>Department</th>
+              <th>Title & Urgency</th>
+              <th>Citizen / Ward</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in recent_complaints %}
+            <tr>
+              <td>
+                <span class="fw-bold text-primary font-monospace">{{ c.reference_no }}</span>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ c.dept_name }}</div>
+                <div class="text-muted small">{{ c.cat_name }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold text-truncate" style="max-width: 250px;">{{ c.title }}</div>
+                <span class="badge badge-urgency-{{ c.urgency|lower }}" style="font-size: 0.65rem;">{{ c.urgency }}</span>
+              </td>
+              <td class="small">
+                <div>{{ c.citizen_name }}</div>
+                <div class="text-danger"><i class="fa fa-map-pin me-1"></i> {{ c.ward_area }}</div>
+              </td>
+              <td>
+                {% if c.status == 'Submitted' %}
+                  <span class="badge badge-submitted">Submitted</span>
+                {% elif c.status == 'Under Review' %}
+                  <span class="badge badge-under-review">Under Review</span>
+                {% elif c.status == 'In Progress' %}
+                  <span class="badge badge-in-progress">In Progress</span>
+                {% elif c.status == 'Resolved' %}
+                  <span class="badge badge-resolved">Resolved</span>
+                {% elif c.status == 'Rejected' %}
+                  <span class="badge badge-rejected">Rejected</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ c.created_at[:10] }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('track_complaint', ref=c.reference_no) }}" class="btn btn-sm btn-outline-primary" title="View Audit Trail">
+                  <i class="fa fa-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Chart.js Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. Department Chart Data
+  const deptLabels = {{ chart_dept_labels | tojson }};
+  const deptCounts = {{ chart_dept_counts | tojson }};
+
+  const ctxDept = document.getElementById('deptChart');
+  if (ctxDept && deptLabels.length > 0) {
+    new Chart(ctxDept, {
+      type: 'bar',
+      data: {
+        labels: deptLabels,
+        datasets: [{
+          label: 'Number of Complaints',
+          data: deptCounts,
+          backgroundColor: '#0f2c59',
+          borderRadius: 6,
+          hoverBackgroundColor: '#d97706'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+          x: { ticks: { maxRotation: 45, minRotation: 20 } }
+        }
+      }
+    });
+  }
+
+  // 2. Status Doughnut Chart
+  const ctxStatus = document.getElementById('statusChart');
+  if (ctxStatus) {
+    new Chart(ctxStatus, {
+      type: 'doughnut',
+      data: {
+        labels: ['Submitted', 'Under Review', 'In Progress', 'Resolved', 'Rejected'],
+        datasets: [{
+          data: [
+            {{ stats.submitted }},
+            {{ stats.under_review }},
+            {{ stats.in_progress }},
+            {{ stats.resolved }},
+            {{ stats.rejected }}
+          ],
+          backgroundColor: ['#0284c7', '#7c3aed', '#f59e0b', '#10b981', '#ef4444'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

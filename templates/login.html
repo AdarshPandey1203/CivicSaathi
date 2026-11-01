@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}Login | CivicSaathi Pune City Grievance Redressal Portal{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      
+      <div class="card card-civic shadow-lg border-0 overflow-hidden">
+        <!-- Card Header with Pune Municipal Branding -->
+        <div class="card-header bg-primary text-white p-4 text-center">
+          <div class="bg-white text-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+            <i class="fa fa-user-lock fs-4"></i>
+          </div>
+          <h4 class="fw-bold mb-1">CivicSaathi Login Portal</h4>
+          <p class="small text-white-50 mb-0">Role-Based Secure Access for Citizens, Department Officers & Administrators</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <!-- Role Navigation Pills -->
+          <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-3" id="loginTab" role="tablist">
+            <li class="nav-item">
+              <button class="nav-link active fw-semibold" id="citizen-tab" data-bs-toggle="tab" data-bs-target="#citizen-login" type="button">
+                <i class="fa fa-user me-1"></i> Citizen
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link fw-semibold" id="officer-tab" data-bs-toggle="tab" data-bs-target="#officer-login" type="button">
+                <i class="fa fa-shield-halved me-1"></i> Officer
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link fw-semibold" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin-login" type="button">
+                <i class="fa fa-gauge-high me-1"></i> Administrator
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="loginTabContent">
+            <!-- 1. Citizen Login Tab -->
+            <div class="tab-pane fade show active" id="citizen-login" role="tabpanel">
+              <form action="{{ url_for('login') }}" method="POST">
+                <input type="hidden" name="expected_role" value="citizen">
+                
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Citizen Email Address</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-envelope text-muted"></i></span>
+                    <input type="email" name="email" id="citizen_email" class="form-control" placeholder="e.g. rajesh.patil@gmail.com" required>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Password</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-lock text-muted"></i></span>
+                    <input type="password" name="password" id="citizen_password" class="form-control" placeholder="••••••••" required>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100 py-2 fw-bold text-dark shadow-sm">
+                  <i class="fa fa-right-to-bracket me-1"></i> Sign In as Citizen
+                </button>
+              </form>
+
+              <div class="mt-3 text-center small text-muted">
+                New to CivicSaathi? <a href="{{ url_for('register') }}" class="fw-semibold text-primary">Create Pune Citizen Account</a>
+              </div>
+
+              <!-- Quick Demo Autofill Box -->
+              <div class="mt-4 p-3 bg-light border rounded-3">
+                <div class="fw-bold text-muted small mb-2"><i class="fa fa-bolt text-warning me-1"></i> 1-Click Demo Citizen Autofill:</div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillCitizen('rajesh.patil@gmail.com', 'pune123')">
+                    Rajesh Patil (Kothrud)
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillCitizen('priya.deshmukh@gmail.com', 'pune123')">
+                    Priya Deshmukh (Shivajinagar)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Department Officer Login Tab -->
+            <div class="tab-pane fade" id="officer-login" role="tabpanel">
+              <form action="{{ url_for('login') }}" method="POST">
+                <input type="hidden" name="expected_role" value="officer">
+                
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Government / Official Email</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-id-badge text-muted"></i></span>
+                    <input type="email" name="email" id="officer_email" class="form-control" placeholder="e.g. officer.roads@pmc.gov.in" required>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Authorized Officer Password</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-lock text-muted"></i></span>
+                    <input type="password" name="password" id="officer_password" class="form-control" placeholder="••••••••" required>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                  <i class="fa fa-shield-halved me-1"></i> Access Department Desk
+                </button>
+              </form>
+
+              <!-- Quick Demo Autofill Box for Officers -->
+              <div class="mt-4 p-3 bg-light border rounded-3">
+                <div class="fw-bold text-muted small mb-2"><i class="fa fa-bolt text-warning me-1"></i> 1-Click Demo Officer Autofill:</div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="fillOfficer('officer.roads@pmc.gov.in', 'pune123')">
+                    PMC Roads (Er. Kulkarni)
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="fillOfficer('officer.water@pmc.gov.in', 'pune123')">
+                    PMC Water (Er. Joshi)
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="fillOfficer('officer.traffic@punepolice.gov.in', 'pune123')">
+                    Traffic Police (Insp. More)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Administrator Login Tab -->
+            <div class="tab-pane fade" id="admin-login" role="tabpanel">
+              <form action="{{ url_for('login') }}" method="POST">
+                <input type="hidden" name="expected_role" value="admin">
+                
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Admin Console Email</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-shield-cat text-muted"></i></span>
+                    <input type="email" name="email" id="admin_email" class="form-control" placeholder="admin@civicsaathi.pune.gov.in" required>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold small">Super Administrator Password</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-key text-muted"></i></span>
+                    <input type="password" name="password" id="admin_password" class="form-control" placeholder="••••••••" required>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-danger w-100 py-2 fw-bold shadow-sm">
+                  <i class="fa fa-gauge-high me-1"></i> Open Admin Central Console
+                </button>
+              </form>
+
+              <!-- Quick Demo Autofill Box for Admin -->
+              <div class="mt-4 p-3 bg-light border rounded-3">
+                <div class="fw-bold text-muted small mb-2"><i class="fa fa-bolt text-warning me-1"></i> 1-Click Demo Admin Autofill:</div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="fillAdmin('admin@civicsaathi.pune.gov.in', 'admin123')">
+                  Pune Central Grievance Administrator
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function fillCitizen(email, pwd) {
+  document.getElementById('citizen_email').value = email;
+  document.getElementById('citizen_password').value = pwd;
+}
+function fillOfficer(email, pwd) {
+  document.getElementById('officer_email').value = email;
+  document.getElementById('officer_password').value = pwd;
+}
+function fillAdmin(email, pwd) {
+  document.getElementById('admin_email').value = email;
+  document.getElementById('admin_password').value = pwd;
+}
+</script>
+{% endblock %}

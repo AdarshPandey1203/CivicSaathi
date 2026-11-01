@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Administrative Grievance Reports | Pune CivicSaathi{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+
+  <!-- Action Bar -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3 no-print">
+    <div>
+      <h3 class="fw-bold mb-1 text-primary"><i class="fa fa-chart-line me-2"></i>Administrative Performance & Grievance Reports</h3>
+      <p class="text-muted small mb-0">Consolidated analytics and department compliance reports for Pune City</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button onclick="window.print()" class="btn btn-warning fw-bold text-dark">
+        <i class="fa fa-print me-1"></i> Print / Export Report
+      </button>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+        <i class="fa fa-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Card (Hidden on print) -->
+  <div class="card card-civic mb-4 p-3 shadow-sm no-print">
+    <form action="{{ url_for('admin_reports') }}" method="GET" class="row g-2 align-items-center">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold mb-1">Department</label>
+        <select name="dept_id" class="form-select form-select-sm">
+          <option value="">-- All Departments --</option>
+          {% for d in departments %}
+            <option value="{{ d.id }}" {% if selected_dept_id == d.id|string %}selected{% endif %}>{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold mb-1">Status</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">-- All Statuses --</option>
+          <option value="Submitted" {% if selected_status == 'Submitted' %}selected{% endif %}>Submitted</option>
+          <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+          <option value="In Progress" {% if selected_status == 'In Progress' %}selected{% endif %}>In Progress</option>
+          <option value="Resolved" {% if selected_status == 'Resolved' %}selected{% endif %}>Resolved</option>
+          <option value="Rejected" {% if selected_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold mb-1">Pune Ward / Zone</label>
+        <select name="ward" class="form-select form-select-sm">
+          <option value="">-- All Wards --</option>
+          {% for w in wards %}
+            <option value="{{ w }}" {% if selected_ward == w %}selected{% endif %}>{{ w }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-sm btn-primary w-100 fw-semibold">
+          <i class="fa fa-sliders me-1"></i> Generate Report
+        </button>
+        <a href="{{ url_for('admin_reports') }}" class="btn btn-sm btn-outline-secondary">Reset</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Official Report Header for Print -->
+  <div class="d-none d-print-block text-center mb-4">
+    <h3 class="fw-bold mb-1">PUNE MUNICIPAL CORPORATION & STATE AUTHORITIES</h3>
+    <h5>CivicSaathi Public Grievance Redressal Performance Report</h5>
+    <div class="small text-muted">Generated on: {{ current_time }} &bull; Confidential Administrative Record</div>
+    <hr>
+  </div>
+
+  <!-- Summary Cards for Report -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border">
+        <div class="fs-3 fw-bold text-primary">{{ reports|length }}</div>
+        <div class="text-muted small text-uppercase fw-semibold">Filtered Grievances</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border">
+        <div class="fs-3 fw-bold text-success">{{ resolved_count }}</div>
+        <div class="text-muted small text-uppercase fw-semibold">Successfully Redressed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border">
+        <div class="fs-3 fw-bold text-warning">{{ pending_count }}</div>
+        <div class="text-muted small text-uppercase fw-semibold">Under Investigation</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-civic p-3 text-center border">
+        <div class="fs-3 fw-bold text-danger">{{ resolution_percentage }}%</div>
+        <div class="text-muted small text-uppercase fw-semibold">Resolution Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Data Table -->
+  <div class="card card-civic shadow-sm">
+    <div class="card-header-civic d-flex justify-content-between align-items-center">
+      <span class="fw-bold text-primary">Department Performance Registry</span>
+      <span class="badge bg-secondary-subtle text-dark">{{ reports|length }} Entries</span>
+    </div>
+
+    <div class="card-body p-0">
+      {% if reports %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle mb-0 small">
+          <thead class="table-dark small text-uppercase">
+            <tr>
+              <th style="width: 13%;">Ref No & Date</th>
+              <th style="width: 22%;">Department & Authority</th>
+              <th style="width: 22%;">Issue Description</th>
+              <th style="width: 15%;">Ward & Landmark</th>
+              <th style="width: 10%;">Status</th>
+              <th style="width: 18%;">Official Resolution Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reports %}
+            <tr>
+              <td>
+                <span class="fw-bold font-monospace text-primary">{{ r.reference_no }}</span>
+                <div class="text-muted">{{ r.created_at[:10] }}</div>
+              </td>
+              <td>
+                <div class="fw-bold">{{ r.dept_name }}</div>
+                <div class="text-muted small">{{ r.cat_name }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ r.title }}</div>
+                <div class="text-muted small text-truncate" style="max-width: 260px;">{{ r.description }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold text-danger">{{ r.ward_area }}</div>
+                <div class="text-muted text-truncate" style="max-width: 180px;">{{ r.address_landmark }}</div>
+              </td>
+              <td>
+                <span class="badge badge-{{ r.status|lower|replace(' ', '-') }}">{{ r.status }}</span>
+              </td>
+              <td class="text-muted">
+                {{ r.officer_remarks or 'Pending officer inspection.' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="fa fa-file-excel text-muted display-4 mb-3"></i>
+        <h5 class="fw-bold">No Data Found for Current Criteria</h5>
+        <p class="text-muted small">Select another department or reset filters to generate records.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
